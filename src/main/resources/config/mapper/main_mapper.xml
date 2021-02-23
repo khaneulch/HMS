@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+    "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.hms.main.mapper.MainMapper">
+
+	<!-- 메인에 보여질 컴포넌트를 불러옴 -->
+	<select id="getMainComponent" parameterType="map" resultType="CamelListMap">
+		SELECT
+			A.SEQ
+			, A.DP_SEQ
+			, B.TITLE
+			, B.CONTENT
+			, B.BG_TYPE
+			, B.BG_IMG
+			, B.BG_COLOR
+			, B.FILE_PATH
+			, B.COMP_TYPE
+			, B.LINK_TYPE
+			, B.LINK_URL
+			, B.MENU_YN
+			, B.SLIDER_TYPE
+			, B.WIDTH
+		FROM TB_MAIN_COMPONENT A, TB_COMPONENT B
+		WHERE A.SEQ = B.SEQ
+			AND B.DEL_YN = 'N'
+			<if test="groupCode != null and groupCode != ''">
+				AND A.GROUP_CODE = #{groupCode}
+			</if>
+		ORDER BY A.DP_SEQ
+	</select>
+	
+	<!-- 다운로드될 컴포넌트 목록의 파일경로를 불러옴 -->
+	<select id="searchFilePath" parameterType="map" resultType="CamelListMap">
+		SELECT A.FILE_PATH FROM TB_COMPONENT A
+			WHERE A.SEQ IN (
+				SELECT 
+					B.SEQ 
+				FROM TB_MAIN_COMPONENT B 
+				WHERE B.GROUP_CODE = #{groupCode}
+			) OR A.SEQ = 0
+	</select>
+	
+	<!-- 그룹명을 불러옴 -->
+	<select id="getGroupName" resultType="CamelListMap">
+		SELECT 
+			GROUP_NAME
+			, MAX(GROUP_CODE) AS GROUP_CODE 
+		FROM TB_MAIN_COMPONENT 
+			GROUP BY GROUP_NAME 
+		ORDER BY GROUP_NAME
+	</select>
+	
+</mapper>

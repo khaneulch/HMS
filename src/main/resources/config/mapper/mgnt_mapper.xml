@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+    "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.hms.mgnt.mapper.MgntMapper">
+	<!-- 컴포넌트 생성 -->
+	<insert id="insertComponent">
+		<selectKey keyProperty="seq" resultType="int" order="BEFORE">
+			SELECT IFNULL(MAX(Z.SEQ), 0) + 1 FROM TB_COMPONENT Z
+		</selectKey>
+		INSERT INTO TB_COMPONENT (
+			SEQ
+			, TITLE
+			, CONTENT
+			, BG_TYPE
+			, BG_IMG
+			, BG_COLOR
+			, FILE_PATH
+			, COMP_TYPE
+			, LINK_TYPE
+			, LINK_URL
+			, MENU_YN
+			, SLIDER_TYPE
+			, WIDTH
+		) VALUES (
+			#{seq}
+			, #{title}
+			, #{content}
+			, #{bgType}
+			, #{bgImg}
+			, #{bgColor}
+			, #{filePath}
+			, #{compType}
+			, #{linkType}
+			, #{linkUrl}
+			, #{menuYn}
+			, #{sliderType}
+			, #{width}
+		)
+	</insert>
+	
+	<!-- 특정 컴포넌트를 불러옴 -->
+	<select id="getComponent" parameterType="map" resultType="CamelListMap">
+		SELECT 
+			SEQ
+			, TITLE
+			, CONTENT
+			, BG_TYPE
+			, BG_IMG
+			, BG_COLOR
+			, FILE_PATH
+			, COMP_TYPE
+			, LINK_TYPE
+			, LINK_URL
+			, MENU_YN
+			, SLIDER_TYPE
+			, WIDTH
+			, DEL_YN
+			, REG_DT
+		FROM TB_COMPONENT
+		WHERE SEQ = #{seq}
+	</select>
+	
+	<!-- 컴포넌트 리스트 -->
+	<sql id="searchComponentFromWhere">
+		FROM TB_COMPONENT A
+		WHERE A.DEL_YN = 'N'
+			AND A.SEQ != '0'
+	</sql>
+	
+	<select id="searchComponentCnt" resultType="int">
+		SELECT COUNT(1)
+		<include refid="searchComponentFromWhere"/>
+	</select>
+	
+	<select id="searchComponent" parameterType="map" resultType="CamelListMap">
+		<include refid="CommonMapper.paginationHeader"/>
+			SELECT 
+				A.SEQ
+				, A.TITLE
+				, A.CONTENT
+				, (
+					SELECT 
+						Z.DP_SEQ 
+					FROM TB_MAIN_COMPONENT Z 
+					WHERE Z.SEQ = A.SEQ
+						AND Z.GROUP_CODE = #{groupCode}
+				) AS IS_MAIN
+				, A.DEL_YN
+				, A.COMP_TYPE
+				, A.MENU_YN
+				, A.REG_DT
+			<include refid="searchComponentFromWhere"/>
+			ORDER BY A.REG_DT DESC
+		<include refid="CommonMapper.paginationFooter"/>
+	</select>
+	
+	<!-- 컴포넌트 수정 -->
+	<update id="updateComponent" parameterType="map">
+		UPDATE TB_COMPONENT SET
+			UDT_DT = CURRENT_TIMESTAMP
+			<if test="title != null and title != ''">
+				, TITLE = #{title}
+			</if>
+			, BG_TYPE = #{bgType}
+			<if test="bgImg != null and bgImg != ''">
+				, BG_IMG = #{bgImg}
+			</if>
+			, BG_COLOR = #{bgColor}
+			, CONTENT = #{content}
+			, MENU_YN = #{menuYn}
+			, LINK_TYPE = #{linkType}
+			, LINK_URL = #{linkUrl}
+			, SLIDER_TYPE = #{sliderType}
+			, WIDTH = #{width}
+		WHERE SEQ = #{seq}
+	</update>
+	
+	<!-- 메인 컴포넌트 등록 -->
+	<insert id="insertMainComponent" parameterType="map">
+		<selectKey keyProperty="groupCode" resultType="int" order="BEFORE">
+			SELECT 
+				CASE WHEN #{groupCode} = -1 THEN IFNULL(MAX(Z.GROUP_CODE), 0) + 1 
+				ELSE #{groupCode} END 
+			FROM TB_MAIN_COMPONENT Z
+		</selectKey>
+		INSERT INTO TB_MAIN_COMPONENT (
+			SEQ
+			, DP_SEQ
+			, GROUP_NAME
+			, GROUP_CODE
+		) VALUES 
+		<foreach collection="seq" item="item" separator=",">
+			(
+				#{item}
+				, 1
+				, #{groupName}
+				, #{groupCode}
+			)
+		</foreach>
+	</insert>
+	
+	<!-- 메인 컴포넌트 삭제 -->
+	<delete id="deleteMainComponent" parameterType="map">
+		DELETE FROM TB_MAIN_COMPONENT
+			<trim prefix="WHERE" prefixOverrides="AND">
+				<if test="seq != null and seq != ''">
+					AND SEQ = #{seq}
+				</if>
+				<if test="groupCode != null and groupCode != ''">
+					AND GROUP_CODE = #{groupCode}
+				</if>
+			</trim>
+	</delete>
+	
+	<!-- 메인 컴포넌트 순서 변경 -->
+	<update id="updateMainComponent" parameterType="map">
+		UPDATE TB_MAIN_COMPONENT SET DP_SEQ = #{dpSeq} WHERE SEQ = #{seq}
+	</update>
+	
+	<!-- 슬라이더 컴포넌트 등록 -->
+	<insert id="insertSliderComponent" parameterType="map">
+		INSERT INTO TB_SLIDER_COMPONENT (
+			SEQ
+			, FILE_NAME
+			, FILE_ORG_NAME
+			, DP_SEQ
+		) VALUES (
+			#{seq}
+			, #{fileName}
+			, #{fileOrgName}
+			, #{dpSeq}
+		)
+	</insert>
+	
+	<!-- 슬라이더 컴포넌트 이미지 리스트-->
+	<select id="searchSliderComponent" parameterType="map" resultType="CamelListMap">
+		SELECT 
+			SEQ
+			, FILE_NAME
+			, FILE_ORG_NAME
+			, DP_SEQ
+			, (SELECT FILE_PATH FROM TB_COMPONENT Z WHERE Z.SEQ = A.SEQ) AS FILE_PATH
+			, REG_DT
+		FROM TB_SLIDER_COMPONENT A
+		WHERE SEQ = #{seq}
+		ORDER BY DP_SEQ 
+	</select>
+	
+	<!-- 슬라이더 컴포넌트 삭제-->
+	<delete id="deleteSliderComponent" parameterType="map">
+		DELETE FROM TB_SLIDER_COMPONENT WHERE SEQ = #{seq} AND FILE_NAME = #{fileName} 
+	</delete>
+	
+	<!-- 홈기본 설정을 불러옴-->
+	<select id="getHomeSetting" parameterType="map" resultType="CamelListMap">
+		SELECT 
+			GROUP_CODE
+			, HEADER_RGB
+			, LOGO_FILE_NAME
+			, CONTENT_WIDTH
+			, CONTENT
+			, BG_COLOR
+			, REG_DT
+		FROM TB_HOME_SETTING
+		WHERE GROUP_CODE = #{groupCode}
+	</select>
+	
+	<!-- 홈기본 설정 추가-->
+	<insert id="insertHomeSetting" parameterType="map">
+		INSERT INTO TB_HOME_SETTING (GROUP_CODE, REG_DT) VALUES(#{groupCode}, CURRENT_TIMESTAMP)
+	</insert>
+	
+	<!-- 홈기본 설정 수정-->
+	<update id="updateHomeSetting" parameterType="map">
+		UPDATE TB_HOME_SETTING SET
+			UDT_DT = CURRENT_TIMESTAMP
+			<if test="headerRgb != null and headerRgb != ''">
+				, HEADER_RGB = #{headerRgb}
+			</if>
+			<if test="logoFileName != null and logoFileName != ''">
+				, LOGO_FILE_NAME = #{logoFileName}
+			</if>
+			<if test="contentWidth != null and contentWidth != ''">
+				, CONTENT_WIDTH = #{contentWidth}
+			</if>
+			<if test="content != null and content != ''">
+				, CONTENT = #{content}
+			</if>
+			<if test="bgColor != null and bgColor != ''">
+				, BG_COLOR = #{bgColor}
+			</if>
+		WHERE GROUP_CODE = #{groupCode}
+	</update>
+	
+	<!-- 컴포넌트 삭제-->
+	<update id="deleteComponent" parameterType="map">
+		UPDATE TB_COMPONENT SET DEL_YN = 'Y', UDT_DT = CURRENT_TIMESTAMP WHERE SEQ = #{seq}
+	</update>
+	
+	<!-- 홈세팅 정보 삭제 -->
+	<update id="deleteHomeSetting" parameterType="map">
+		DELETE FROM TB_HOME_SETTING WHERE GROUP_CODE = #{groupCode} 
+	</update>
+	
+</mapper>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+    "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="CommonMapper">
+	<sql id="paginationHeader">
+        <if test="pagination != null"> 
+			SELECT * FROM ( 
+				SELECT @rownum:=@rownum+1 AS RNUM, ZZ1.* FROM (
+        </if>
+	</sql>
+	
+	<sql id="paginationFooter">
+        <if test="pagination != null">
+        		) ZZ1 , (SELECT @rownum:=0) ZZ2
+        	) ZZ3 WHERE RNUM <![CDATA[>=]]> #{pagination.startRownum} and RNUM <![CDATA[<=]]> #{pagination.endRownum}
+        </if>
+	</sql>	
+</mapper>

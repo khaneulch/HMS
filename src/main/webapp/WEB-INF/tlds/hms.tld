@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib version="2.0" xmlns="http://java.sun.com/xml/ns/j2ee"     
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"     
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee web-jsptaglibrary_2_0.xsd">
+	
+	<tlib-version>2.0</tlib-version>    
+    <short-name>HMS-TagLib-Functions</short-name>    
+
+    <uri>/WEB-INF/tlds/hms</uri>
+    
+    <function>
+    	<name>getFormattedDate</name>
+		<function-class>com.hms.utils.CustomTagUtils</function-class>
+		<function-signature>java.lang.String getFormattedDate(java.lang.String)</function-signature>
+	</function>
+	
+    <function>
+    	<name>getFormattedDate2</name>
+		<function-class>com.hms.utils.CustomTagUtils</function-class>
+		<function-signature>java.lang.String getFormattedDate(java.lang.String, java.lang.String)</function-signature>
+	</function>
+</taglib>

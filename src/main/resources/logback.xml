@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+	<property resource="config/config.properties"/>
+	
+	<property name="LOG_PATTERN" value="%-5level [%d{HH:mm:ss.SSS}] [%thread] %logger[%method:%line] - %msg%n"/>
+	
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    	<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern>${LOG_PATTERN}</pattern>
+		</layout>
+	</appender>
+	
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${logback.dir}/HMS.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>HMS.%d{yyyyMMddHH}.log</fileNamePattern>
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
+		
+		<encoder>
+			<pattern>${LOG_PATTERN}</pattern>
+		</encoder>
+	</appender>
+	
+	<appender name="FILE-ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${logback.dir}/HMS_ERROR.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>HMS_ERROR.%d{yyyyMMddHH}.log</fileNamePattern>
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
+		
+		<encoder>
+			<pattern>${LOG_PATTERN}</pattern>
+		</encoder>
+	</appender>
+	
+	<!-- HMS LOG -->
+	<logger name="com.hms" level="DEBUG"/>
+	
+	<!-- SPRING LOG -->
+	<logger name="org.springframework" level="WARN"/>
+	
+	<!-- QUERY LOG -->
+	<logger name="jdbc" level="OFF"/>
+	<logger name="jdbc.sqlonly" level="OFF"/>
+	<logger name="jdbc.sqltiming" level="DEBUG"/>
+	<logger name="jdbc.audit" level="OFF"/>
+	<logger name="jdbc.resultset" level="DEBUG"/>
+	<logger name="jdbc.resultsettable" level="DEBUG"/>
+	<logger name="jdbc.connection" level="OFF"/>
+
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
+    </root>
+    
+    <root level="ERROR">
+        <appender-ref ref="FILE-ERROR" />
+    </root>
+    
+</configuration>
